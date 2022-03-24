@@ -6,6 +6,10 @@
 int mouse_pos_x;
 int mouse_pos_y;
 void draw_grid(int row,int column,int margin_top);
+int ytorow(int y);
+int xtocolumn(int x);
+int snap_x(int x);
+int snap_y(int y);
 
 void main(){
     int c = 0;
@@ -19,8 +23,11 @@ void main(){
         if((int)c==1){
             mouse_pos_x = gfx_xpos();
             mouse_pos_y = gfx_ypos();
-            gfx_draw_ellipse(xtocolumn,mouse_pos_y,50*size,50);
-            size--;
+            if(mouse_pos_x < ((WINDOW_WIDTH-5))){
+                gfx_draw_ellipse(snap_x(mouse_pos_x),snap_y(mouse_pos_y),50*size,50);
+                size--;
+
+            }
         }
     }
     
@@ -49,9 +56,17 @@ void draw_grid(int row,int column,int margin_top){
 }
 
 int ytorow(int y){
-    return y / (WINDOW_HEIGHT/10);
+    return y / ((WINDOW_HEIGHT-50)/10);
 }
 
 int xtocolumn(int x){
-    return x / (WINDOW_WIDTH/20);
+    return x / ((WINDOW_WIDTH-5)/20);
+}
+
+int snap_x(int x){
+    return xtocolumn(x) * ((WINDOW_WIDTH-5)/20);
+}
+
+int snap_y(int y){
+    return ytorow(y) * ((WINDOW_HEIGHT-50)/10);
 }
