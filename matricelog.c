@@ -14,7 +14,7 @@ int controllavalido(int size,int mat[][20],int x,int y,int orientazione);
 void main(){
     int boats[]={1,1,1,1,2,2,2,3,3,4};
     int c = 0;
-    int size = 1;
+    int size = 0;
     int z,x,y,mat[10][20]={0};
     gfx_open(WINDOW_WIDTH,WINDOW_HEIGHT,"Battaglia Navale");
     draw_grid(10,20,50);
@@ -27,16 +27,16 @@ void main(){
         x=xtocolumn(mouse_pos_x);
         y=ytorow(mouse_pos_y)-1;
         if((int)c==1){
-            if(mouse_pos_x < WINDOW_WIDTH-5&&controllavalido(boats[size],mat,x,y,1)){
+            if(mouse_pos_x < WINDOW_WIDTH/2-5&&controllavalido(boats[size],mat,x,y,1)){
                 gfx_draw_ellipse(snap_x(mouse_pos_x),snap_y(mouse_pos_y),50,50*boats[size]);
-                for(z=0;z<boats[size];z++)mat[y+z][x]=size;
                 size++;
+                for(z=0;z<boats[size-1];z++)mat[y+z][x]=size;
             }
         }else if((int)c==3){
-            if(mouse_pos_x < WINDOW_WIDTH-5&&controllavalido(boats[size],mat,x,y,0)){
+            if(mouse_pos_x < WINDOW_WIDTH/2-5&&controllavalido(boats[size],mat,x,y,0)){
                 gfx_draw_ellipse(snap_x(mouse_pos_x),snap_y(mouse_pos_y),50*boats[size],50);
-                for(z=0;z<boats[size];z++)mat[y][x+z]=size;
                 size++;
+                for(z=0;z<boats[size-1];z++)mat[y][x+z]=size;
             }
         }
         for(y=0;y<10;y++){
@@ -88,6 +88,7 @@ int controllavalido(int size,int mat[][20],int x,int y,int orientazione){
     }
     return valido;
 }
+
 void draw_grid(int row,int column,int margin_top){
 
     int column_offset = (WINDOW_WIDTH-5) / column;
