@@ -10,12 +10,14 @@ int ytorow(int y);
 int xtocolumn(int x);
 int snap_x(int x);
 int snap_y(int y);
-int controllavalido(int size,int mat[][20],int x,int y,int orientazione);
+int controllavalido(int size,int mat[][11],int x,int y,int orientazione);
 void main(){
     int boats[]={1,1,1,1,2,2,2,3,3,4};
     int c = 0;
     int size = 0;
-    int z,x,y,mat[10][20]={0};
+    int z,x,y,mat[11][11]={0};
+    for(x=0;x<10;x++){mat[10][x]=1;mat[x][10]=1;}
+
     gfx_open(WINDOW_WIDTH,WINDOW_HEIGHT,"Battaglia Navale");
     draw_grid(10,20,50);
     gfx_draw_text(0,25,"Ciao",4);
@@ -48,7 +50,7 @@ void main(){
         printf("\n");
     }
 }
-int controllavalido(int size,int mat[][20],int x,int y,int orientazione){
+int controllavalido(int size,int mat[][11],int x,int y,int orientazione){
     int valido=1,z;
     if(orientazione){
         for(z=0;z<size;z++){
