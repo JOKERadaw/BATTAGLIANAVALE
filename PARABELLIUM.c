@@ -97,11 +97,12 @@ void  play(int socket,int turno) {
 
             }
         }else{
-            if(id == turno%2){
+            if(id == turno%2&&risposta!=314159){
                 
                 set_text("Premi la casella da colpire del nemico");
                 event = gfx_wait();
                 if((int) event == 1){
+		    if(risposta=314159){set_text("hai perso L");break;}
                     while(mouse_pos_x<500){
                     mouse_pos_x = gfx_xpos();
                     mouse_pos_y = gfx_ypos();
@@ -140,7 +141,5 @@ void  play(int socket,int turno) {
                 set_text("Premi la casella da colpire del nemico");
             }
         }
-
-        
     }
 }
