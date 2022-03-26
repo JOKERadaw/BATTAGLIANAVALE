@@ -35,5 +35,11 @@ int mattack(int mat[][11],int barche[],int xy[]){
     // questo drawcross e return MISS può essere evitato se non inseriamo numeri negativi nella matrice.
     return MISS;
 }
+int checkwin(boats[]){
+    for(int x=0;x<10;x++)
+        if(boats[x]>0)
+            return 0;
+    return 1;
+}
 // se l'avversario legge zero disegna croce bianca altrimenti rossa
 
