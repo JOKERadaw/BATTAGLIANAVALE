@@ -17,10 +17,11 @@ void drawcross(int x,int y,int color){
         gfx_line(x*SQUARE_SIZE,y*SQUARE_SIZE+SQUARE_SIZE-z,x*SQUARE_SIZE+SQUARE_SIZE-z,y*SQUARE_SIZE);
     }
 }
+//barche[] =1,1,1,1,2,2,2,3,3,4
 //mattack ritorna se è stata affondata,mancata,beccata
 //e aggiorna la nostra matrice in base a questo
 //poichè anche noi vediamo quello che l'avversario ha colpito
-int mattack(int mat[][20],int barche[],int xy[]){
+int mattack(int mat[][11],int barche[],int xy[]){
     if(--barche[mat[xy[0]][xy[1]]]==0){
         drawcross(xy[0],xy[1],1);
         mat[xy[0]][xy[1]]=0;
@@ -31,6 +32,8 @@ int mattack(int mat[][20],int barche[],int xy[]){
         return HIT;
     }
     drawcross(xy[0],xy[1],0);
+    // questo drawcross e return MISS può essere evitato se non inseriamo numeri negativi nella matrice.
     return MISS;
 }
+// se l'avversario legge zero disegna croce bianca altrimenti rossa
 
