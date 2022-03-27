@@ -8,6 +8,7 @@
 #include "multiplayer.h"
 #include "bn_graphics.h"
 #include "gfx.h"
+#include "control.h"
 #define CLIENT 1
 #define SERVER 0
 void  play(int socket,int turno);
@@ -49,7 +50,7 @@ int main(int argc , char *argv[])
 
 
 void  play(int socket,int turno) {
-	char buffer[2000],cordinate_colpite[4];
+	char buffer[2000],cordinate_colpite[4],risposta[1024];
     int cord[2];
 	int lenb;
 	int mouse_pos_x,mouse_pos_y;
@@ -99,27 +100,32 @@ void  play(int socket,int turno) {
                     mouse_pos_x = gfx_xpos();
                     mouse_pos_y = gfx_ypos();
                     c=xtocolumn(mouse_pos_x);
-                    r=ytorow(mouse_pos_y)-1;
-                    sprintf(cordinate_colpite,"%d %d",c,r);
-                    printf("%d,%d\n",c,r);
-                    //Verifico se ho cliccato una cella giusta quindi che non sono andato sul mio campo se è successo non mando nulla ma riascolto un nuovo evento
-                    write(socket,cordinate_colpite,strlen(cordinate_colpite));
-                    turno = !turno;
-                    set_text("Attendi il tuo turno");
-                    //Vado in attesa che mi venga inviato se ho colpito o no una nave
-                    gfx_flush();
+                    r=ytorow(mouse_pos_y);
+                    if(c >= 10 && r > 0){
+                        sprintf(cordinate_colpite,"%d %d",c,r);
+                        printf("%d,%d\n",c,r);
+                        gfx_line_width(1);
+                        drawcross(c,r,1);
+                        write(socket,cordinate_colpite,strlen(cordinate_colpite));
+                        turno = !turno;
+                        lenb = read(socket,risposta,1024);
+                        risposta[lenb] = '\0';
+                        set_text(risposta);
+                        gfx_flush();
+                    }
                 }
             }else{
-                set_text("Attendi il tuo turno");
-                gfx_flush();
                 lenb = read(socket,cordinate_colpite,1024);
                 cordinate_colpite[lenb] = '\0';
                 turno = !turno;
                 sscanf(cordinate_colpite,"%d %d",&cord[0],&cord[1]);
-                printf("%d,%d\n",cord[0],cord[1]);
-                printf("Ci sono");
-                //Verifica se ha colpito una nave 
-                //Dopo mando se ho colpito o no a chi ha appena attacato che dopo aver premuto andrà in read mentre chi ha ricevuto in write
+                if(grid[cord[1] - 10][cord[0]] > 0){
+                    strcpy(risposta,"Colpita");
+                }else{
+                    strcpy(risposta,"Mancata");
+                }
+                write(socket,risposta,strlen(risposta));
+
                 set_text("Premi la casella da colpire del nemico");
             }
         }
