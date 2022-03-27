@@ -1,56 +1,4 @@
 	
-#include <stdio.h>
-#include <string.h>	
-#include <stdlib.h>
-#include<sys/socket.h>
-#include<arpa/inet.h>
-#include<unistd.h>	
-#include <time.h>
-#include "multiplayer.h"
-#include "bn_graphics.h"
-#include "gfx.h"
-#include "control.h"
-#define CLIENT 1
-#define SERVER 0
-void  play(int socket,int turno);
-
-int id;
-
-int main(int argc , char *argv[])
-{
-	int socket_desc;
-	int porta;
-	int turno;
-    char t[2];
-	srand(time(NULL));
-    if(argc ==2){
-	    porta = atoi(argv[1]);
-    	socket_desc=connessione_server(porta);
-		turno = rand()%2;
-        id = SERVER;
-        sprintf(t,"%d",turno);
-        write(socket_desc,t,1);
-    }else if(argc == 3){
-	    porta = atoi(argv[2]);
-	    socket_desc=connessione_client(argv[1],porta);
-        id = CLIENT;
-    }else{
-        perror("specificare la porta di esecuzione 1025-32000 ...Esempio  $./server 8888(Server)\n");
-        perror("specificare indirizzo e porta del server ...Esempio  $./server 127.0.0.1 8888(Client)\n");
-		return -1;
-    }
-    if(id == CLIENT){
-        int len =read(socket_desc,t,1);
-        t[len] = '\0';
-        turno = atoi(t);
-    }
-    play(socket_desc,turno);
-	close(socket_desc);
-	return 0;
-}
-
-
-void  play(int socket,int turno) {
 	char buffer[2000],cordinate_colpite[4],risposta[1024];
     int cord[2];
 	int lenb;
@@ -106,12 +54,13 @@ void  play(int socket,int turno) {
                         sprintf(cordinate_colpite,"%d %d",c,r);
                         printf("%d,%d\n",c,r);
                         gfx_line_width(1);
-                    
                         write(socket,cordinate_colpite,strlen(cordinate_colpite));
                         turno = !turno;
                         lenb = read(socket,risposta,1024);
                         risposta[lenb] = '\0';
-                        set_text(risposta);
+						if(risposta[0]=='M')drawcross(c,r,0);
+						else drawcross(c,r,1);
+						set_text(risposta);
                         gfx_flush();
                     }
                 }
@@ -120,13 +69,18 @@ void  play(int socket,int turno) {
                 cordinate_colpite[lenb] = '\0';
                 turno = !turno;
                 sscanf(cordinate_colpite,"%d %d",&cord[0],&cord[1]);
-                if(grid[cord[1] - 10][cord[0]] > 0){
-		    drawcross(c,r,1);
+                if(grid[cord[1] - 1][cord[0]-10] > 0){
                     strcpy(risposta,"Colpita");
                 }else{
-		    drawcross(c,r,0);
                     strcpy(risposta,"Mancata");
                 }
+				for(int x=0;x<20;x++){
+				
+					for(int y=0;y<10;y++){
+						printf("%d ",grid[x][y]);
+					}
+					printf("\n");
+				}
                 write(socket,risposta,strlen(risposta));
 
                 set_text("Premi la casella da colpire del nemico");
