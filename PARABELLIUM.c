@@ -9,8 +9,7 @@
 #include "multiplayer.h"
 #include "bn_graphics.h"
 #include "gfx.h"
-#include "funzioni.h"
-
+#include "control.h"
 #define CLIENT 1
 #define SERVER 0
 void  play(int socket,int turno);
@@ -52,20 +51,18 @@ int main(int argc , char *argv[])
 
 
 void  play(int socket,int turno) {
-	char buffer[2000],cordinate_colpite[4];
+	char buffer[2000],cordinate_colpite[4],risposta[1024];
     int cord[2];
 	int lenb;
 	int mouse_pos_x,mouse_pos_y;
 	int event = 0;
     int grid[ROW][COLUMN];
     memset(grid,0,ROW*COLUMN*sizeof(int));
-
     int boats[]={1,1,1,1,2,2,2,3,3,4};
     int size = 0;
     int valido = 0;
     int posiziona =1;
     int r,c;
-    int risposta;
     gfx_open(WINDOW_WIDTH,WINDOW_HEIGHT,"Battaglia Navale");
     gfx_color(255,255,255);
     draw_grid(ROW,COLUMN,50);
@@ -97,49 +94,45 @@ void  play(int socket,int turno) {
 
             }
         }else{
-            if(id == turno%2&&risposta!=314159){
-                
+            if(id == turno){
                 set_text("Premi la casella da colpire del nemico");
                 event = gfx_wait();
                 if((int) event == 1){
-		    if(risposta=314159){set_text("hai perso L");break;}
-                    while(mouse_pos_x<500){
                     mouse_pos_x = gfx_xpos();
                     mouse_pos_y = gfx_ypos();
-                    c=xtocolumn(mouse_pos_x)-10;
-                    r=ytorow(mouse_pos_y)-1;
-                    sprintf(cordinate_colpite,"%d %d",c,r);
-                    printf("%d,%d\n",c,r);
-                    }//Verifico se ho cliccato una cella giusta quindi che non sono andato sul mio campo se è successo non mando nulla ma riascolto un nuovo evento
+                    c=xtocolumn(mouse_pos_x);
+                    r=ytorow(mouse_pos_y);
+                    if(c >= 10 && r > 0){
+                        sprintf(cordinate_colpite,"%d %d",c,r);
+                        printf("%d,%d\n",c,r);
+                        gfx_line_width(1);
                     
-                    write(socket,cordinate_colpite,strlen(cordinate_colpite));
-                    turno ++;
-                    set_text("Attendi il tuo turno");
-                    
-                    read(socket,risposta,sizeof(risposta));
-                    
-                    if(!risposta){drawcross(c+10,y+1,0);set_text("mancato");};
-                    else if(risposta){drawcross(c+10,y+1,1);set_text("colpito!");}
-                    else{ drawcross(c+10,y+1,1);set_text("affondato!");}
-                    if(risposta==314159){set_text("hai vinto GG");break;}
-                    gfx_flush();
+                        write(socket,cordinate_colpite,strlen(cordinate_colpite));
+                        turno = !turno;
+                        lenb = read(socket,risposta,1024);
+                        risposta[lenb] = '\0';
+                        set_text(risposta);
+                        gfx_flush();
+                    }
                 }
             }else{
-                set_text("Attendi il tuo turno");
-                gfx_flush();
                 lenb = read(socket,cordinate_colpite,1024);
                 cordinate_colpite[lenb] = '\0';
-                turno ++;
+                turno = !turno;
                 sscanf(cordinate_colpite,"%d %d",&cord[0],&cord[1]);
-                printf("%d,%d\n",cord[0],cord[1]);
-                printf("Ci sono");
-                risposta=mattack(grid,boats,cord);
-                if(turno>18)
-                    if(checkwin(boats))
-                        risposta=314159;
-                write(socket,risposta,sizeof(risposta));
+                if(grid[cord[1] - 10][cord[0]] > 0){
+		    drawcross(c,r,1);
+                    strcpy(risposta,"Colpita");
+                }else{
+		    drawcross(c,r,0);
+                    strcpy(risposta,"Mancata");
+                }
+                write(socket,risposta,strlen(risposta));
+
                 set_text("Premi la casella da colpire del nemico");
             }
         }
+
+        
     }
 }
