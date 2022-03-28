@@ -1,3 +1,53 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include<sys/socket.h>
+#include<arpa/inet.h>
+#include<unistd.h>
+#include <time.h>
+#include "multiplayer.h"
+#include "bn_graphics.h"
+#include "gfx.h"
+#include "control.h"
+#define CLIENT 1
+#define SERVER 0
+int  play(int socket,int turno);
+
+int id;
+
+int main(int argc , char *argv[])
+{
+    int socket_desc;
+    int porta;
+    int turno;
+    char t[2];
+    srand(time(NULL));
+    if(argc ==2){
+        porta = atoi(argv[1]);
+        socket_desc=connessione_server(porta);
+        turno = rand()%2;
+        id = SERVER;
+        sprintf(t,"%d",turno);
+        write(socket_desc,t,1);
+    }else if(argc == 3){
+        porta = atoi(argv[2]);
+        socket_desc=connessione_client(argv[1],porta);
+        id = CLIENT;
+    }else{
+        perror("specificare la porta di esecuzione 1025-32000 ...Esempio  $./server 8888(Server)\n");
+        perror("specificare indirizzo e porta del server ...Esempio  $./server 127.0.0.1 8888(Client)\n");
+        return -1;
+    }
+    if(id == CLIENT){
+        int len =read(socket_desc,t,1);
+        t[len] = '\0';
+        turno = atoi(t);
+    }
+    play(socket_desc,turno);
+    close(socket_desc);
+    return 0;
+}
+
 
 int  play(int socket,int turno) {
     char buffer[2000],cordinate_colpite[4],risposta[1024];
@@ -49,6 +99,7 @@ int  play(int socket,int turno) {
                 set_text("Premi la casella da colpire del nemico");
                 event = gfx_wait();
                 if((int) event == 1){
+                    gfx_line_width(1);
                     mouse_pos_x = gfx_xpos();
                     mouse_pos_y = gfx_ypos();
                     c=xtocolumn(mouse_pos_x);
@@ -76,25 +127,26 @@ int  play(int socket,int turno) {
                 cordinate_colpite[lenb] = '\0';
                 turno = !turno;
                 sscanf(cordinate_colpite,"%d %d",&cord[0],&cord[1]);
+                gfx_line_width(1);
                 if(grid[cord[1] - 1][cord[0]-10] > 0){
-                    drawcross(cord[0]-10,cord[1]-1,1);
+                    drawcross(cord[0]-10,cord[1],1);
+    
                     grid[cord[1]-1][cord[0]-10]=0;
                     vinto=1;
                     for(int x=0;x<10;x++){
-                    for(int y=0;y<10;y++){
-                        if(grid[x][y]>0){
-                            vinto=0;break;
-                        }
+                        if(boats[x]>0){vinto=0;break;}
                     }
-                    if(!vinto)break;
-                    }
+                   
+                    
                     if(vinto){
                         strcpy(risposta,"hai vinto");
+                    }else if(--boats[grid[cord[1]-1][cord[0]-10]]==0){
+                        strcpy(risposta,"Distrutta");
                     }else{
                         strcpy(risposta,"Colpita");
                     }
                 }else{
-                    drawcross(cord[0]-10,cord[1]-1,0);
+                    drawcross(cord[0]-10,cord[1],0);
                     strcpy(risposta,"Mancata");
                 }
                 for(int x=0;x<20;x++){
